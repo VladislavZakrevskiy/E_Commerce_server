@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model refresh_token {
+  user_id String @id @db.Uuid
+  token   String
+
+  @@map("token")
+}
+
+model Product {
+  product_id         String               @id @default(uuid()) @db.Uuid
+  name               String
+  price              String
+  message            String
+  media              String[]
+  created_At         DateTime?
+  Warehouse_fullness Warehouse_fullness[]
+  Seller             Seller?              @relation(fields: [seller_id], references: [seller_id])
+  seller_id          String?              @db.Uuid
+
+  @@map("product")
+}
+
+model Warehouse_fullness {
+  id           String     @id @default(uuid())
+  product      Product    @relation(fields: [product_id], references: [product_id])
+  number       Int        @default(1)
+  product_id   String     @db.Uuid
+  Warehouse    Warehouse? @relation(fields: [warehouse_id], references: [id])
+  warehouse_id String?    @db.Uuid
+
+  @@map("warehouse_fullness")
+}
+
+model Warehouse {
+  id             String               @id @default(uuid()) @db.Uuid
+  city           String
+  country        String
+  house_street   String
+  house_number   Int
+  amount_procent Int
+  products       Warehouse_fullness[]
+  Seller         Seller?              @relation(fields: [seller_id], references: [seller_id])
+  seller_id      String?              @db.Uuid
+
+  @@map("warehouse")
+}
+
+model Seller {
+  seller_id       String      @id @default(uuid()) @db.Uuid
+  firstName       String
+  lastName        String
+  password        String
+  email           String      @unique
+  age             Int
+  preferences     String[]    @default([])
+  photo           String?
+  city            String
+  country         String
+  house_street    String
+  house_number    Int
+  settings        Json?       @default("{}")
+  warehouses      Warehouse[]
+  products        Product[]
+  amount_customer Int?        @default(0)
+  rating          Int?        @default(0)
+  Message         Message[]
+
+  @@map("seller")
+}
+
+model User {
+  user_id      String    @id @default(uuid()) @db.Uuid
+  firstName    String
+  lastName     String
+  password     String
+  email        String    @unique
+  age          Int
+  preferences  String[]  @default([])
+  photo        String?
+  city         String
+  country      String
+  house_street String
+  house_number Int
+  settings     Json?     @default("{}")
+  Message      Message[]
+
+  @@map("user")
+}
+
+model Message {
+  id             String   @id @default(uuid()) @db.Uuid
+  media          String[] @default([])
+  text           String   @db.Text
+  chat_id        String   @db.Uuid
+  from_seller_id String   @db.Uuid
+  from_user_id   String   @db.Uuid
+  to_id          String   @db.Uuid
+  created_at     DateTime
+  from_seller    Seller   @relation(fields: [from_seller_id], references: [seller_id])
+  from_user      User     @relation(fields: [from_user_id], references: [user_id])
+
+  @@map("messages")
+}
